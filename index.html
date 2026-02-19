@@ -182,12 +182,13 @@ const BUCKET="pengumuman";
 
 /* ===== LOGIN ===== */
 function login(){
-  if(password.value===ADMIN_PASSWORD){
-    loginBox.classList.add("hidden");
-    dashboard.classList.remove("hidden");
+  const pass = document.getElementById("password").value;
+  if(pass === ADMIN_PASSWORD){
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
     loadData();
   }else{
-    loginMsg.innerText="❌ Password salah";
+    document.getElementById("loginMsg").innerText = "❌ Password salah";
   }
 }
 
