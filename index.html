@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Pengumuman</title>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  background:#f2f2f7;
+}
+.container{
+  max-width:520px;
+  margin:auto;
+  padding:20px;
+}
+h1{
+  font-size:1.3rem;
+  margin-bottom:20px;
+}
+input, textarea, select{
+  width:100%;
+  padding:10px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:.9rem;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#007aff;
+  color:white;
+  font-weight:600;
+  font-size:.95rem;
+}
+.success{
+  color:green;
+  font-size:.9rem;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>📢 Dashboard Pengumuman</h1>
+
+  <input type="text" id="judul" placeholder="Judul Pengumuman">
+  <textarea id="ringkasan" placeholder="Ringkasan"></textarea>
+
+  <input type="text" id="gambar_url" placeholder="URL Gambar (dari Supabase)">
+  <input type="text" id="surat_url" placeholder="URL Surat PDF">
+  <input type="text" id="link_eksternal" placeholder="Link Eksternal">
+
+  <select id="status">
+    <option value="Aktif">Aktif</option>
+    <option value="Nonaktif">Nonaktif</option>
+  </select>
+
+  <button onclick="simpan()">Simpan Pengumuman</button>
+
+  <div id="msg" class="success"></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://xmbsrxkhatebzsqeyxms.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtYnNyeGtoYXRlYnpzcWV5eG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTU4NjYsImV4cCI6MjA4NjQ5MTg2Nn0.TJCPXhSm_XrIXIl0BgYn3LaF5O7j5zhfqghJUgJSy88";
+
+async function simpan(){
+  const data = {
+    judul: document.getElementById("judul").value,
+    ringkasan: document.getElementById("ringkasan").value,
+    gambar_url: document.getElementById("gambar_url").value,
+    surat_url: document.getElementById("surat_url").value,
+    link_eksternal: document.getElementById("link_eksternal").value,
+    status: document.getElementById("status").value
+  };
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/pengumuman`, {
+    method: "POST",
+    headers:{
+      "Content-Type":"application/json",
+      "apikey": SERVICE_KEY,
+      "Authorization":"Bearer " + SERVICE_KEY,
+      "Prefer":"return=minimal"
+    },
+    body: JSON.stringify(data)
+  });
+
+  if(res.ok){
+    document.getElementById("msg").innerText = "✔ Pengumuman berhasil disimpan";
+  }else{
+    document.getElementById("msg").innerText = "❌ Gagal menyimpan";
+  }
+}
+</script>
+</body>
+</html>
