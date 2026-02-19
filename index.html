@@ -6,80 +6,125 @@
 <title>Dashboard Pengumuman</title>
 
 <style>
-body{
+*{box-sizing:border-box}
+
+html,body{
   margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
   font-family:system-ui,-apple-system,sans-serif;
   background:#f4f6f9;
 }
+
 .hidden{display:none}
-.wrapper{
-  max-width:1200px;
-  margin:auto;
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+#loginBox{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.login{
+  width:420px;
   padding:40px;
-}
-h1{margin-bottom:20px}
-.card{
   background:#fff;
-  padding:24px;
   border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.06);
+  box-shadow:0 20px 40px rgba(0,0,0,.08);
 }
+
+#dashboard{
+  width:100%;
+  height:100%;
+  padding:24px;
+}
+
+h1{
+  margin:0 0 16px;
+}
+
 .grid{
   display:grid;
   grid-template-columns:420px 1fr;
-  gap:30px;
+  gap:20px;
+  height:calc(100% - 48px);
 }
+
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 10px 24px rgba(0,0,0,.06);
+  height:100%;
+  overflow:auto;
+}
+
 input,textarea,select{
   width:100%;
   padding:10px;
   margin:6px 0 14px;
   border-radius:8px;
-  border:1px solid #ddd;
+  border:1px solid #ccc;
+  font-size:.9rem;
 }
+
 textarea{min-height:100px}
+
 button{
-  padding:10px 16px;
+  padding:12px;
   border:none;
   border-radius:8px;
   background:#007aff;
   color:#fff;
   font-weight:600;
-  cursor:pointer;
 }
+
 button.danger{background:#e53935}
+
 table{
   width:100%;
   border-collapse:collapse;
 }
+
 th,td{
   padding:10px;
   border-bottom:1px solid #eee;
   text-align:left;
 }
+
 th{background:#fafafa}
-.action button{
-  margin-right:6px;
-  font-size:.8rem;
+
+.loading{
+  display:none;
+  margin-top:10px;
+  font-size:.85rem;
 }
-.login{
-  max-width:360px;
-  margin:120px auto;
-}
+
+.loading.show{display:block}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div class="login card" id="loginBox">
-  <h1>🔐 Login Admin</h1>
-  <input type="password" id="password" placeholder="Password admin">
-  <button onclick="login()">Masuk</button>
-  <p id="loginMsg"></p>
+<div id="loginBox">
+  <div class="login">
+    <h1>🔐 Login Admin</h1>
+    <input type="password" id="password" placeholder="Password admin">
+    <button onclick="login()">Masuk</button>
+    <div id="loginMsg"></div>
+  </div>
 </div>
 
 <!-- DASHBOARD -->
-<div class="wrapper hidden" id="dashboard">
+<div id="dashboard" class="hidden">
 
 <h1>📢 Dashboard Pengumuman</h1>
 
@@ -103,11 +148,12 @@ th{background:#fafafa}
 
   <label>Status</label>
   <select id="status">
-    <option value="Aktif">Aktif</option>
+    <option value="Aktif" selected>Aktif</option>
     <option value="Nonaktif">Nonaktif</option>
   </select>
 
-  <button onclick="simpan()">💾 Simpan</button>
+  <button id="btnSimpan" onclick="simpan()">💾 Simpan</button>
+  <div id="loadingSimpan" class="loading">⏳ Menyimpan...</div>
 </div>
 
 <!-- TABLE -->
@@ -128,27 +174,26 @@ th{background:#fafafa}
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const ADMIN_PASSWORD = "rsds2026";
-
+/* ===== CONFIG ===== */
+const ADMIN_PASSWORD="rsds2026";
 const SUPABASE_URL = "https://xmbsrxkhatebzsqeyxms.supabase.co";
-const SERVICE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtYnNyeGtoYXRlYnpzcWV5eG1zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDkxNTg2NiwiZXhwIjoyMDg2NDkxODY2fQ.QMvKVffIa1U45ZKoobjfcqgBIV2CLoKh3QzCfPBIjBU";
-const BUCKET = "pengumuman";
+const SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtYnNyeGtoYXRlYnpzcWV5eG1zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDkxNTg2NiwiZXhwIjoyMDg2NDkxODY2fQ.QMvKVffIa1U45ZKoobjfcqgBIV2CLoKh3QzCfPBIjBU";
+const BUCKET="pengumuman";
 
-/* ================= LOGIN ================= */
+/* ===== LOGIN ===== */
 function login(){
-  if(document.getElementById("password").value === ADMIN_PASSWORD){
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
+  if(password.value===ADMIN_PASSWORD){
+    loginBox.classList.add("hidden");
+    dashboard.classList.remove("hidden");
     loadData();
   }else{
-    document.getElementById("loginMsg").innerText = "❌ Password salah";
+    loginMsg.innerText="❌ Password salah";
   }
 }
 
-/* ================= STORAGE ================= */
-async function uploadFile(file, folder){
-  const path = `${folder}/${Date.now()}_${file.name}`;
+/* ===== STORAGE ===== */
+async function uploadFile(file,folder){
+  const path=`${folder}/${Date.now()}_${file.name}`;
   await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`,{
     method:"POST",
     headers:{
@@ -161,23 +206,19 @@ async function uploadFile(file, folder){
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
 }
 
-/* ================= CRUD ================= */
+/* ===== LOAD ===== */
 async function loadData(){
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/pengumuman?order=created_at.desc`,{
-    headers:{
-      apikey:SERVICE_KEY,
-      Authorization:"Bearer "+SERVICE_KEY
-    }
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/pengumuman?order=created_at.desc`,{
+    headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+SERVICE_KEY}
   });
-  const data = await res.json();
-  const list = document.getElementById("list");
+  const data=await res.json();
   list.innerHTML="";
   data.forEach(d=>{
     list.innerHTML+=`
       <tr>
         <td>${d.judul}</td>
         <td>${d.status}</td>
-        <td class="action">
+        <td>
           <button onclick='edit(${JSON.stringify(d)})'>✏️</button>
           <button class="danger" onclick="hapus('${d.id}')">🗑</button>
         </td>
@@ -185,30 +226,35 @@ async function loadData(){
   });
 }
 
+/* ===== EDIT ===== */
 function edit(d){
-  editId.value = d.id;
-  judul.value = d.judul;
-  ringkasan.value = d.ringkasan || "";
-  status.value = d.status;
+  editId.value=d.id;
+  judul.value=d.judul;
+  ringkasan.value=d.ringkasan||"";
+  status.value=d.status||"Aktif";
 }
 
+/* ===== SIMPAN ===== */
 async function simpan(){
-  let gambar_url=null, surat_url=null;
-  if(gambar.files[0]) gambar_url = await uploadFile(gambar.files[0],"images");
-  if(surat.files[0]) surat_url = await uploadFile(surat.files[0],"surat");
+  btnSimpan.disabled=true;
+  loadingSimpan.classList.add("show");
+
+  let gambar_url=null,surat_url=null;
+  if(gambar.files[0]) gambar_url=await uploadFile(gambar.files[0],"images");
+  if(surat.files[0]) surat_url=await uploadFile(surat.files[0],"surat");
 
   const payload={
     judul:judul.value,
     ringkasan:ringkasan.value,
-    status:status.value
+    status:status.value||"Aktif"
   };
   if(gambar_url) payload.gambar_url=gambar_url;
   if(surat_url) payload.surat_url=surat_url;
 
-  const method = editId.value ? "PATCH" : "POST";
-  const url = editId.value
-    ? `${SUPABASE_URL}/rest/v1/pengumuman?id=eq.${editId.value}`
-    : `${SUPABASE_URL}/rest/v1/pengumuman`;
+  const method=editId.value?"PATCH":"POST";
+  const url=editId.value
+    ?`${SUPABASE_URL}/rest/v1/pengumuman?id=eq.${editId.value}`
+    :`${SUPABASE_URL}/rest/v1/pengumuman`;
 
   await fetch(url,{
     method,
@@ -220,18 +266,25 @@ async function simpan(){
     body:JSON.stringify(payload)
   });
 
+  // reset form
   editId.value="";
+  judul.value="";
+  ringkasan.value="";
+  status.value="Aktif";
+  gambar.value="";
+  surat.value="";
+
+  loadingSimpan.classList.remove("show");
+  btnSimpan.disabled=false;
   loadData();
 }
 
+/* ===== DELETE ===== */
 async function hapus(id){
-  if(!confirm("Hapus pengumuman ini?")) return;
+  if(!confirm("Hapus data ini?"))return;
   await fetch(`${SUPABASE_URL}/rest/v1/pengumuman?id=eq.${id}`,{
     method:"DELETE",
-    headers:{
-      apikey:SERVICE_KEY,
-      Authorization:"Bearer "+SERVICE_KEY
-    }
+    headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+SERVICE_KEY}
   });
   loadData();
 }
