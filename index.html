@@ -185,7 +185,7 @@ const BUCKET="pengumuman";
 /* ===== LOGIN ===== */
 function login(){
   if(password.value===ADMIN_PASSWORD){
-    loginBox.classList.add("hidden");
+    loginBox.style.display="none";
     dashboard.classList.remove("hidden");
     loadData();
   }else{
